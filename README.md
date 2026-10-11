@@ -58,6 +58,10 @@ pwsh -NoLogo -NoProfile -NonInteractive -File .\scripts\bootstrap.ps1
 
 可通过 `GARMIN_CN_SYNC_DB`、`GARMIN_CN_SYNC_IMPORT_DIR` 和 `GARMIN_CN_SYNC_INTERVAL_SECONDS` 指定本地数据库、导入目录和同步间隔；同步间隔最低为 900 秒。
 
+### 许可证
+
+本项目采用 MIT License，详见 [LICENSE](LICENSE)。
+
 ## English
 
 Garmin China Sync is a local-first plugin for Codex and compatible MCP clients. It reads health summaries, sleep, HRV, Body Battery, and activity history from Garmin China (`garmin.cn`), caches the responses in a local SQLite database, and makes the cached data available for user-requested queries and analysis.
@@ -113,3 +117,7 @@ The initial bootstrap fetches up to **30 days of daily health data** and **365 d
 - The plugin has no Garmin account-write tools, availability is not guaranteed, and it is not a medical device or diagnostic service.
 
 Optional environment variables: `GARMIN_CN_SYNC_DB`, `GARMIN_CN_SYNC_IMPORT_DIR`, and `GARMIN_CN_SYNC_INTERVAL_SECONDS` (minimum 900 seconds).
+
+### License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
