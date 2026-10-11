@@ -1,0 +1,20 @@
+{
+  "name": "garmin-china-sync",
+  "interface": {
+    "displayName": "Garmin China Sync"
+  },
+  "plugins": [
+    {
+      "name": "garmin-cn-sync",
+      "source": {
+        "source": "local",
+        "path": "./garmin-cn-sync"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Health & Fitness"
+    }
+  ]
+}
