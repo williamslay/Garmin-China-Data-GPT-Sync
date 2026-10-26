@@ -1,3 +1,5 @@
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/williamslay/Garmin-China-Data-GPT-Sync/tree/main/cloud/worker)
+
 # Garmin China Sync
 
 [简体中文](#简体中文) · [English](#english)
@@ -20,15 +22,15 @@ codex plugin marketplace add williamslay/Garmin-China-Data-GPT-Sync --ref main
 
 在 Codex 桌面端打开 Plugins Directory，从 `Garmin China Sync` 市场安装 `Garmin China Sync Cloud`。然后按照插件的 Setup 指引部署自己的 Worker，并在客户端添加 OAuth MCP 地址：`https://<自己的-worker>.<账户>.workers.dev/mcp`。
 
-### 部署自己的 Cloud Worker
+### 最简单的部署方式
 
-需要 Node.js 24+、pnpm、Cloudflare Workers/KV 账户和 Garmin 中国区 Personal API Key。详情见[Cloud Edition 指南](cloud/README.md)。
+需要 GitHub（或 GitLab）账号、Cloudflare 账号和 Garmin 中国区 Personal API Key。点击页面顶部的 **Deploy to Cloudflare** 按钮，授权 Cloudflare 读取代码仓库并部署。Cloudflare 会把 `cloud/worker` 复制到你自己的仓库、自动创建并绑定 KV，然后部署 Worker。无需安装 Node.js/pnpm、手动创建 KV 或编辑配置文件。
 
-1. 在 `cloud/worker` 安装依赖并登录 Wrangler。
-2. 创建 `OAUTH_KV` 命名空间，把 ID 写入 `cloud/worker/wrangler.jsonc`。
-3. 部署 Worker，复制 Wrangler 输出的 HTTPS 地址。
-4. 在 Codex/ChatGPT 添加远程 MCP 服务器，地址以 `/mcp` 结尾，认证选择 OAuth。
-5. 在 Garmin 授权页输入 Personal API Key；不要把 Key 放进对话或配置文件。
+部署完成后，复制 Cloudflare 显示的 Worker 地址，在 Codex/ChatGPT 添加远程 MCP 服务器：地址末尾加 `/mcp`，认证选择 OAuth。授权页面只输入 Garmin Personal API Key。不要把 Key 放进对话或配置文件。
+
+按钮和部署本身不单独收费。按 Cloudflare 当前 Free 额度，Workers 每日含 100,000 次请求；KV 每日含 100,000 次读取、各 1,000 次写入/删除/列举，存储 1 GB；Workers Builds 每月含 3,000 分钟。个人使用通常可留在免费额度内。若主动开通付费计划或使用收费资源，可能产生费用；额度会调整，查看 [Workers 价格](https://developers.cloudflare.com/workers/platform/pricing/) 和 [Builds 限额](https://developers.cloudflare.com/workers/ci-cd/builds/limits-and-pricing/)。
+
+没有 GitHub/GitLab 账号时，可按[手动部署指南](cloud/README.md#手动部署)用 Node.js 和 pnpm 部署。
 
 工具范围和隐私边界见 [cloud/README.md](cloud/README.md)、[隐私说明](cloud/PRIVACY.md) 和 [使用条款](cloud/TERMS.md)。本项目是独立社区软件，不是 Garmin 官方产品，不提供医疗诊断。
 
@@ -50,14 +52,14 @@ codex plugin marketplace add williamslay/Garmin-China-Data-GPT-Sync --ref main
 
 In the Codex desktop app, open the Plugins Directory and install `Garmin China Sync Cloud` from the `Garmin China Sync` marketplace. Follow its Setup instructions to deploy your Worker, then add your personal OAuth MCP endpoint: `https://<your-worker>.<account>.workers.dev/mcp`.
 
-### Deploy your own Cloud Worker
+### Simplest deployment path
 
-Requirements: Node.js 24+, pnpm, a Cloudflare Workers/KV account, and a Garmin China Personal API Key. See the [Cloud Edition guide](cloud/README.md).
+You need a GitHub or GitLab account, a Cloudflare account, and a Garmin China Personal API Key. Select **Deploy to Cloudflare** at the top of this README, authorize Cloudflare to access the source repository, and deploy. Cloudflare copies `cloud/worker` to a repository under your account, creates and binds the KV namespace, and deploys the Worker. No local Node.js/pnpm setup or Wrangler commands are required.
 
-1. Install dependencies in `cloud/worker` and authenticate Wrangler.
-2. Create the `OAUTH_KV` namespace and put its ID in `cloud/worker/wrangler.jsonc`.
-3. Deploy the Worker and copy its HTTPS URL from Wrangler.
-4. Add a remote MCP server in Codex/ChatGPT, using the URL ending in `/mcp` and OAuth authentication.
-5. Enter the Personal API Key on Garmin's authorization page; never place it in chat or a config file.
+After deployment, copy the Worker URL Cloudflare shows. Add a remote MCP server in Codex/ChatGPT with `/mcp` at the end of the URL and OAuth authentication. Enter the Garmin Personal API Key only on the HTTPS authorization page, never in chat or a config file.
 
-See [cloud/README.md](cloud/README.md), the [privacy notice](cloud/PRIVACY.md), and [terms](cloud/TERMS.md) for tool boundaries and data handling. This is independent community software, not an official Garmin product, and does not provide medical diagnoses.
+The button and deployment have no separate charge. Cloudflare Free currently includes 100,000 Worker requests per day; 100,000 KV reads and 1,000 writes, deletes, and list operations per day; 1 GB KV storage; and 3,000 Workers Builds minutes per month. Personal use will usually fit within the free quotas. Paid plans or paid products can incur charges; check [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/) and [Builds limits](https://developers.cloudflare.com/workers/ci-cd/builds/limits-and-pricing/) for current terms.
+
+Users without GitHub/GitLab can follow the [manual deployment guide](cloud/README.md#manual-deployment) using Node.js and pnpm.
+
+See [cloud/README.md](cloud/README.md), the [privacy notice](cloud/PRIVACY.md), and [terms](cloud/TERMS.md) for tool boundaries and data handling. This is independent community software, not an official Garmin product, and does not provide medical diagnoses.

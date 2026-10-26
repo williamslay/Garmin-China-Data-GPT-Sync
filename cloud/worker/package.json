@@ -2,7 +2,9 @@
   "name": "garmin-cn-cloud-mcp",
   "private": true,
   "version": "0.1.0",
+  "description": "Read-only Garmin China MCP Worker deployed to the user's Cloudflare account",
   "type": "module",
+  "packageManager": "pnpm@11.25.0",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
@@ -19,5 +21,12 @@
     "@cloudflare/workers-types": "^5.0.0",
     "typescript": "^5.9.0",
     "wrangler": "4.149.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "OAUTH_KV": {
+        "description": "Created and bound during deployment. Stores OAuth state and encrypted Garmin credentials; Garmin health and activity records are fetched live and are not stored here."
+      }
+    }
   }
 }

@@ -9,10 +9,10 @@ Help the user install the repository's Cloud Edition. Each user must deploy thei
 
 ## Setup path
 
-1. Point the user to the repository's `cloud/README.md` for the full PowerShell instructions.
-2. Help them deploy `cloud/worker` to their Cloudflare account and create/bind their own `OAUTH_KV` namespace.
-3. Ask them to copy the Worker HTTPS URL from Wrangler. Never ask them to paste their Garmin Key into chat or a config file.
-4. Have them add a remote MCP server in the client they use. The URL is `https://<their-worker>.<their-account>.workers.dev/mcp`, with OAuth authentication.
+1. Point the user first to the **Deploy to Cloudflare** button in `cloud/README.md`. Explain that this requires GitHub or GitLab plus Cloudflare accounts; Cloudflare copies the isolated Worker subdirectory to the user's repository and creates/binds `OAUTH_KV` automatically.
+2. If they cannot use GitHub/GitLab or prefer local deployment, guide them through the manual Node.js/pnpm path in `cloud/README.md`. Wrangler creates/binds `OAUTH_KV` from the Wrangler configuration.
+3. Ask them to copy the Worker HTTPS URL shown by Cloudflare. Never ask them to paste their Garmin Key into chat or a config file.
+4. Have them add a remote MCP server in their client. The URL is `https://<their-worker>.<their-account>.workers.dev/mcp`, with OAuth authentication.
 5. They enter the Garmin Personal API Key only on the HTTPS authorization page.
 6. Once the client exposes `garmin_get_daily`, `garmin_get_activities`, and `garmin_get_activity_detail`, use those connected tools to answer data questions.
 

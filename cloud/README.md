@@ -1,5 +1,7 @@
 # Garmin China Sync — Cloud Edition
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/williamslay/Garmin-China-Data-GPT-Sync/tree/main/cloud/worker)
+
 Cloud Edition runs as a remote MCP endpoint on Cloudflare Workers. Deploy one Worker to your own Cloudflare account, then connect that HTTPS endpoint to ChatGPT. There is no desktop process or user-managed VPS. Garmin data remains at Garmin until a tool call; the Worker fetches it live and returns the requested result to ChatGPT.
 
 This edition is separate from the existing Desktop Edition. The Worker does not sync history into a database or cache Garmin health/activity responses. Cloudflare KV is used only by Cloudflare's OAuth provider for OAuth clients, short-lived authorization state/codes, tokens, and encrypted per-user credential properties. The Garmin Key is entered in a browser form during OAuth, verified with Garmin, and stored only inside those encrypted OAuth properties. The default OAuth grant expires after 30 days; disconnect in ChatGPT or revoke/delete the Personal API Key in Garmin Connect to stop future access.
@@ -14,28 +16,26 @@ This edition is separate from the existing Desktop Edition. The Worker does not 
 
 All calls use `personal.connectapi.garmin.cn`. The Worker exposes read-only tools and does not accept caller-provided URLs or endpoint paths. It exchanges the Personal API Key for a Garmin bearer token when a tool runs and does not retain the bearer token. API errors omit response bodies and credential values.
 
-## Deploy your own endpoint
+## One-click deployment
 
-Requirements: Node.js 24+, pnpm, a Cloudflare account with Workers and KV access, and a Garmin China Personal API Key. Cloud Edition has no serverless database service to maintain, but it does require a remote Worker endpoint in your Cloudflare account.
+You need a GitHub or GitLab account, a Cloudflare account, and a Garmin China Personal API Key. Select **Deploy to Cloudflare** above. Sign in to Cloudflare and authorize access to your GitHub/GitLab account when prompted. Cloudflare copies the isolated `cloud/worker` application into a repository in your account, automatically creates and binds its `OAUTH_KV` namespace, builds the Worker, and deploys it. You do not need to install Node.js/pnpm or edit a Wrangler file.
 
-From PowerShell 7:
+Cloudflare gives you a Worker URL such as `https://<worker>.<account>.workers.dev`. In ChatGPT or Codex, add a remote MCP server at `https://<worker>.<account>.workers.dev/mcp` and choose OAuth. On first connection, enter the Garmin China Personal API Key on the HTTPS authorization page. Never put the Garmin key in chat, GitHub, or a configuration file.
+
+Cloudflare creates a separate copy of the Worker source in your GitHub/GitLab account. Changes to this repository do not automatically update that copy. The button and deployment have no separate charge. Cloudflare Free currently includes 100,000 Worker requests per day; 100,000 KV reads and 1,000 writes, deletes, and list operations per day; 1 GB KV storage; and 3,000 Workers Builds minutes per month. Personal use will usually fit within the free quotas. Paid plans or paid products can incur charges; see [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/) and [Workers Builds limits](https://developers.cloudflare.com/workers/ci-cd/builds/limits-and-pricing/) for current details.
+
+## Manual deployment
+
+Use this path if you do not have GitHub/GitLab or prefer to deploy from your computer. Requirements: Node.js 24+, pnpm, and a Cloudflare account with Workers access. Wrangler creates the KV namespace from the binding in `wrangler.jsonc` during deployment.
 
 ```powershell
 cd cloud/worker
 pnpm install
 pnpm exec wrangler login
-pnpm exec wrangler kv namespace create OAUTH_KV
-```
-
-Copy the returned namespace ID into `cloud/worker/wrangler.jsonc` at `kv_namespaces[0].id`, then run:
-
-```powershell
-pnpm test
-pnpm typecheck
 pnpm exec wrangler deploy
 ```
 
-Wrangler reports your Worker HTTPS host (normally `<worker>.<account>.workers.dev`). The Worker derives the OAuth issuer and protected-resource audience from that actual host. In ChatGPT, add a remote MCP connector using `https://<worker>.<account>.workers.dev/mcp`, choose OAuth, and connect. On first authorization, enter the Garmin China Personal API Key on the consent page. Never paste the Garmin key into the conversation or a plugin configuration file.
+Wrangler reports your Worker HTTPS host (normally `<worker>.<account>.workers.dev`). Continue with the remote MCP and OAuth connection steps above.
 
 For an MCP client that imports a manifest, run `scripts/package.ps1 -McpUrl https://<worker>.<account>.workers.dev/mcp` to generate a URL-specific Cloud plugin folder and ZIP. The generated manifest cannot work until the Worker has been deployed and its real URL supplied.
 
@@ -89,26 +89,26 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the audit record and [PRIVACY.md](PRI
 
 请求固定使用 `personal.connectapi.garmin.cn`。工具只读，不接受调用方传入 URL 或 API 路径。每次工具调用时，Worker 用 Personal API Key 换取 Garmin 短时令牌，不保存该令牌。接口错误不会包含响应正文或凭据。
 
-### 部署自己的服务
+### 一键部署
 
-需要 Node.js 24+、pnpm、可使用 Workers 与 KV 的 Cloudflare 账户，以及 Garmin 中国区 Personal API Key。在 PowerShell 7 中：
+需要 GitHub 或 GitLab 账号、Cloudflare 账号和 Garmin 中国区 Personal API Key。点击本页顶部的 **Deploy to Cloudflare**，登录 Cloudflare，并按提示授权连接 GitHub/GitLab。Cloudflare 会把独立的 `cloud/worker` 项目复制到你自己的代码仓库，自动创建并绑定 `OAUTH_KV`，然后构建和部署。无需在本机安装 Node.js/pnpm，也无需编辑 Wrangler 配置。
+
+部署完成后，Cloudflare 会显示 Worker 地址，例如 `https://<worker>.<account>.workers.dev`。在 ChatGPT 或 Codex 添加远程 MCP 服务器，地址末尾加 `/mcp`，认证选择 OAuth。首次连接时，在 HTTPS 授权页输入 Garmin 中国区 Personal API Key。不要把 Garmin Key 放进对话、GitHub 仓库或配置文件。
+
+Cloudflare 会在你的 GitHub/GitLab 账号下创建一份 Worker 代码副本；本仓库后续更新不会自动同步到那份副本。按钮和部署本身不单独收费。按 Cloudflare 当前 Free 额度，Workers 每日含 100,000 次请求；KV 每日含 100,000 次读取、各 1,000 次写入/删除/列举，存储 1 GB；Workers Builds 每月含 3,000 分钟。个人使用通常可留在免费额度内。若主动开通付费计划或使用收费资源，可能产生费用；额度会调整，查看 [Workers 价格](https://developers.cloudflare.com/workers/platform/pricing/) 和 [Builds 限额](https://developers.cloudflare.com/workers/ci-cd/builds/limits-and-pricing/)。
+
+### 手动部署
+
+没有 GitHub/GitLab 账号或希望从本机部署时，需要 Node.js 24+、pnpm 和 Cloudflare Workers 账户。在 PowerShell 7 中：
 
 ```powershell
 Set-Location cloud/worker
 pnpm install
 pnpm exec wrangler login
-pnpm exec wrangler kv namespace create OAUTH_KV
-```
-
-将命令返回的 namespace ID 填入 `cloud/worker/wrangler.jsonc` 的 `kv_namespaces[0].id`，然后执行：
-
-```powershell
-pnpm test
-pnpm typecheck
 pnpm exec wrangler deploy
 ```
 
-Wrangler 会显示 Worker 的 HTTPS 地址（通常为 `<worker>.<account>.workers.dev`）。Worker 会根据实际访问域名生成 OAuth issuer 与资源受众地址。到 ChatGPT 添加远程 MCP 连接，地址填 `https://<worker>.<account>.workers.dev/mcp`，选择 OAuth 并连接。首次授权时，在浏览器授权页输入 Garmin 中国区 Personal API Key。不要把 Garmin Key 发到对话，也不要放进插件配置文件。
+Wrangler 会按 `wrangler.jsonc` 中的绑定自动创建并关联 KV，然后显示 Worker 的 HTTPS 地址。接着按上文说明，在 ChatGPT 或 Codex 添加远程 MCP 地址并使用 OAuth 连接。
 
 如果客户端支持导入插件清单，可运行 `scripts/package.ps1 -McpUrl https://<worker>.<account>.workers.dev/mcp` 生成绑定此 URL 的 Cloud 插件目录与 ZIP。必须先部署 Worker 并使用实际地址，生成的清单才可连接。
 
