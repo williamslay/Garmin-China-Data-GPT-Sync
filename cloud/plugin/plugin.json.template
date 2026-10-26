@@ -1,0 +1,68 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "garmin-cn-sync-cloud",
+  "version": "0.1.0",
+  "description": "Connect ChatGPT to your own Garmin China Personal API through a remote read-only MCP server.",
+  "author": {
+    "name": "williamslay",
+    "url": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync"
+  },
+  "homepage": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync",
+  "repository": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync",
+  "license": "MIT",
+  "keywords": ["garmin", "garmin-china", "fitness", "health", "mcp", "oauth"],
+  "mcpServers": "./.mcp.json",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Garmin China Sync Cloud",
+        "shortDescription": "Read and analyze your Garmin China data in ChatGPT.",
+        "longDescription": "Connects to a remote MCP endpoint deployed by the user. The user supplies their own Garmin China Personal API Key through OAuth. Read-only tools return daily health, sleep, HRV, Body Battery, activity-list, and activity-detail data.",
+        "developerName": "williamslay",
+        "category": "Lifestyle",
+        "capabilities": ["Read Garmin China activities", "Read sleep and recovery data"],
+        "websiteURL": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync",
+        "supportURL": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync/issues",
+        "privacyPolicyURL": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync/blob/main/cloud/PRIVACY.md",
+        "termsOfServiceURL": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync/blob/main/cloud/TERMS.md",
+        "defaultPrompt": [
+          "Summarize my Garmin sleep and HRV for the last 7 days.",
+          "Compare my last two Garmin runs by pace and heart rate.",
+          "Review my recent training and recovery data."
+        ],
+        "brandColor": "#007CC3"
+      },
+      "onboardingSkill": "./SKILL.md",
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Summarize a week's sleep and HRV",
+              "prompt": "Summarize my Garmin sleep and HRV for the last 7 days.",
+              "tools_triggered": "garmin_get_daily",
+              "expected_behavior": "Summarize the returned dates and values, and state when data is missing."
+            },
+            {
+              "description": "Compare recent activities",
+              "prompt": "Compare my last two Garmin runs by pace and heart rate.",
+              "tools_triggered": "garmin_get_activities, garmin_get_activity_detail",
+              "expected_behavior": "Compare only returned activity fields and report when a field is unavailable."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Write to Garmin",
+              "prompt": "Change my Garmin sleep goal."
+            },
+            {
+              "description": "Read another account",
+              "prompt": "Show activities from a Garmin account that is not connected."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "This project does not sell products or process payments."
+      }
+    }
+  }
+}

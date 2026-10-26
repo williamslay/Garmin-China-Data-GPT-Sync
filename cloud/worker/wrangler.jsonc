@@ -1,0 +1,17 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "garmin-cn-cloud-mcp",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-10-26",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"workers_dev": true,
+	"kv_namespaces": [
+		{
+			"binding": "OAUTH_KV",
+			"id": "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+		}
+	]
+}

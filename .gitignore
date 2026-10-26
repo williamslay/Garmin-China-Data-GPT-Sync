@@ -5,6 +5,12 @@
 **/*.egg-info/
 *.py[cod]
 
+# Cloud Edition build artifacts and installed JavaScript dependencies
+**/node_modules/
+cloud/worker/.pnpm-store/
+cloud/worker/.wrangler/
+cloud/dist/
+
 # Local Garmin data, credentials, and exports
 *.sqlite3
 *.sqlite3-shm

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "garmin-cn-sync-cloud",
+  "version": "0.1.0",
+  "description": "Setup guidance and safe analysis workflows for your self-hosted Garmin China MCP server.",
+  "author": {
+    "name": "Williams Lay",
+    "url": "https://github.com/williamslay"
+  },
+  "homepage": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync",
+  "repository": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync",
+  "license": "MIT",
+  "keywords": ["garmin", "garmin-china", "fitness", "health", "mcp"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Garmin China Sync Cloud",
+        "shortDescription": "Set up your Garmin China MCP",
+        "longDescription": "Guides each user to deploy a private Cloudflare Worker, connect their own Garmin China Personal API Key with OAuth, and interpret read-only health and activity data. The marketplace package does not host or preconfigure a shared data endpoint; each user adds their own Worker URL.",
+        "developerName": "Williams Lay",
+        "category": "Lifestyle",
+        "capabilities": [
+          "Guide deployment of a personal Garmin China MCP endpoint",
+          "Interpret read-only Garmin sleep, recovery, and activity data"
+        ],
+        "websiteURL": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync",
+        "supportURL": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync/issues",
+        "privacyPolicyURL": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync/blob/main/cloud/PRIVACY.md",
+        "termsOfServiceURL": "https://github.com/williamslay/Garmin-China-Data-GPT-Sync/blob/main/cloud/TERMS.md",
+        "defaultPrompt": [
+          "Help me set up my own Garmin China Sync Cloud Worker.",
+          "Summarize my Garmin sleep and HRV for the last 7 days.",
+          "Compare my last two Garmin runs by pace and heart rate."
+        ],
+        "brandColor": "#007CC3"
+      },
+      "onboardingSkill": "./skills/setup/SKILL.md"
+    }
+  }
+}

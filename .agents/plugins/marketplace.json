@@ -5,10 +5,10 @@
   },
   "plugins": [
     {
-      "name": "garmin-cn-sync",
+      "name": "garmin-cn-sync-cloud",
       "source": {
         "source": "local",
-        "path": "./garmin-cn-sync"
+        "path": "./garmin-cn-sync-cloud"
       },
       "policy": {
         "installation": "AVAILABLE",

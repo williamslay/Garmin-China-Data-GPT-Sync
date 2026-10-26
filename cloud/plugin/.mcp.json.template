@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "garmin-cn-sync": {
+      "type": "streamable-http",
+      "url": "__GARMIN_CN_MCP_URL__"
+    }
+  }
+}
