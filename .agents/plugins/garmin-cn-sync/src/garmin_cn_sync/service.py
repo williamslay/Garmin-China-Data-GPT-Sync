@@ -3,11 +3,12 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Any
 
-from .config import database_path, import_dir
+from .config import database_path, import_dir, selected_provider
 from .database import Database
 from .importers import import_directory
 from .secrets import SecretStore
 from .sync import SyncEngine
+from . import __version__
 
 
 def _nested(data: Any, *paths: tuple[str, ...]) -> Any:
@@ -30,8 +31,15 @@ class GarminService:
 
     def status(self) -> dict[str, Any]:
         result = self.database.status()
-        result.update({"region": "China (garmin.cn)", "read_only": True,
-                       "credentials_configured": SecretStore().load_credentials() is not None,
+        store = SecretStore()
+        has_personal = bool(store.load_personal_api_key())
+        has_web = store.load_credentials() is not None
+        provider = selected_provider(has_personal)
+        result.update({"region": "China (garmin.cn)", "read_only": True, "version": __version__,
+                       "provider": provider,
+                       "personal_api_key_configured": has_personal,
+                       "web_credentials_configured": has_web,
+                       "credentials_configured": has_personal if provider == "personal-api" else has_web,
                        "import_directory": str(import_dir())})
         return result
 

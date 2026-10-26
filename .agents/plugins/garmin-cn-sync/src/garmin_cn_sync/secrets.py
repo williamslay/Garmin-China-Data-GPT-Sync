@@ -43,6 +43,22 @@ class SecretStore:
             return None
         return Credentials(email=email, password=password)
 
+    def save_personal_api_key(self, api_key: str) -> None:
+        api_key = api_key.strip()
+        if not api_key or any(ch.isspace() for ch in api_key):
+            raise ValueError("A single nonempty Personal API key is required")
+        self._keyring().set_password(self.service, "personal-api-key-cn", api_key)
+
+    def load_personal_api_key(self) -> str | None:
+        return self._keyring().get_password(self.service, "personal-api-key-cn")
+
+    def save_personal_tokens(self, token_json: str) -> None:
+        # A separate vault service keeps web-session and official bearer-token chunks isolated.
+        SecretStore(self.service + ".PersonalApi.CN").save_tokens(token_json)
+
+    def load_personal_tokens(self) -> str | None:
+        return SecretStore(self.service + ".PersonalApi.CN").load_tokens()
+
     def save_tokens(self, token_json: str) -> None:
         if not token_json.strip().startswith("{"):
             raise ValueError("Refusing to store malformed Garmin token data")

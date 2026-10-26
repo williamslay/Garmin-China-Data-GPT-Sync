@@ -6,6 +6,7 @@ import json
 
 from .client import authenticate
 from .service import GarminService
+from .secrets import SecretStore
 
 
 def _print(value: object) -> None:
@@ -19,10 +20,17 @@ def auth_command() -> None:
     _print({"status": "authenticated", "region": "garmin.cn", "profile": session.api.get_full_name()})
 
 
+def personal_auth_command() -> None:
+    key = getpass.getpass("Garmin China Personal API Key (hidden): ")
+    SecretStore().save_personal_api_key(key)
+    _print({"status": "key_saved", "region": "garmin.cn", "credential_entry": "personal-api-key-cn"})
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="garmin-cn-sync")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("auth", help="Interactive Garmin China authentication")
+    commands.add_parser("auth-personal", help="Save a China Personal API key in the OS credential vault")
     sync_parser = commands.add_parser("sync", help="Sync Garmin China into local SQLite")
     sync_parser.add_argument("--health-days", type=int, default=2)
     sync_parser.add_argument("--activity-days", type=int, default=7)
@@ -37,6 +45,9 @@ def main() -> None:
     args = build_parser().parse_args()
     if args.command == "auth":
         auth_command()
+        return
+    if args.command == "auth-personal":
+        personal_auth_command()
         return
     if args.command == "serve":
         from .server import main as serve

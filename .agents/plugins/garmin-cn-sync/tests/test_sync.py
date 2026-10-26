@@ -32,3 +32,26 @@ def test_sync_writes_daily_and_activities(tmp_path: Path) -> None:
     assert db.status()["daily_records"] == 2
     assert db.status()["activity_records"] == 1
     assert session.persisted is True
+
+
+def test_official_batch_sync_marks_source_and_closes_session(tmp_path: Path):
+    class BatchApi:
+        def get_daily_batch(self, start, end):
+            return {end: {"sleep": {"sleepTimeSeconds": 28800}}}, {end: {}}
+        def get_activities_by_date(self, start, end):
+            return [{"activityId": 11, "startTimeLocal": end + " 12:00:00"}]
+    class BatchSession:
+        provider = "personal-api"
+        api = BatchApi()
+        closed = False
+        def persist_tokens(self): pass
+        def close(self): self.closed = True
+    db = Database(tmp_path / "sync.sqlite3")
+    session = BatchSession()
+    result = SyncEngine(db, connect=lambda: session).sync(health_days=1)
+    assert result["provider"] == "personal-api"
+    assert result["status"] == "ok"
+    assert session.closed
+    from datetime import date
+    day = date.today().isoformat()
+    assert db.activities(day, day, 1)[0]["source"] == "garmin-cn-personal-api"

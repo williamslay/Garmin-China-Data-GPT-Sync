@@ -8,6 +8,15 @@ APP_NAME = "GarminCnSync"
 KEYRING_SERVICE = "GarminCnSync"
 
 
+def selected_provider(has_personal_key: bool) -> str:
+    requested = os.getenv("GARMIN_CN_SYNC_PROVIDER", "auto").strip().lower()
+    if requested not in ("auto", "personal", "web"):
+        raise ValueError("GARMIN_CN_SYNC_PROVIDER must be auto, personal, or web")
+    if requested == "personal" or (requested == "auto" and has_personal_key):
+        return "personal-api"
+    return "china-web"
+
+
 def app_dir() -> Path:
     root = os.getenv("LOCALAPPDATA")
     base = Path(root) if root else Path.home() / ".local" / "share"

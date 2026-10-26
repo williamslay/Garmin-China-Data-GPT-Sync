@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "garmin-cn-sync"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local-first, read-only Garmin China MCP sync server"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,7 +15,8 @@ dependencies = [
   "garminconnect==0.3.13",
   "keyring==25.7.0",
   "mcp>=1.28,<2",
-  "PySocks==1.7.1"
+  "PySocks==1.7.1",
+  "requests>=2.32,<3"
 ]
 
 [project.optional-dependencies]

@@ -4,15 +4,15 @@
 
 ## 简体中文
 
-Garmin China Sync 是一个本地运行的 MCP 插件，将 Garmin 中国区（`garmin.cn`）中的健康日数据和运动活动同步到本机 SQLite 缓存，供 Codex 或其他兼容 MCP 的客户端按需查询。插件面向 Windows 10/11，当前发布版本为 `0.1.0`。
+Garmin China Sync 是一个本地运行的 MCP 插件，将 Garmin 中国区（`garmin.cn`）中的健康日数据和运动活动同步到本机 SQLite 缓存，供 Codex 或其他兼容 MCP 的客户端按需查询。插件面向 Windows 10/11，当前版本为 `0.2.0`。
 
-**重要边界：**插件对 Garmin 账户只执行读取，不提供修改账户数据的功能；但同步会在本机更新缓存。它使用非官方 Garmin Connect Web 客户端，不是 Garmin 官方集成，接口可能变化或被限制。
+插件提供官方 **Personal API** 和原有的非官方中国区网页通道，对 Garmin 健康和活动数据只执行读取；同步更新本机缓存。`auto` 模式下，已保存 Personal API Key 时选用官方通道，否则沿用网页通道。2026-10-26 已验证中国区官方认证、睡眠、HRV、Body Battery 和活动接口可用。
 
 ### 功能说明
 
 #### 健康、睡眠与恢复数据
 
-同步器逐日读取 Garmin 的每日统计、睡眠、HRV 和 Body Battery 接口，并把各接口响应保存在本地。可用信息取决于 Garmin 账户、设备和 API 当日是否提供数据。`garmin_get_daily` 默认返回较精简的字段：
+官方通道通过 4 个日期范围请求批量读取每日统计、睡眠摘要、HRV 摘要和 Body Battery；网页通道仍逐日读取。日统计保留官方 v2 字段并附加旧版查询兼容字段。缓存的官方睡眠和 HRV 是摘要，未额外下载逐点曲线。可用信息取决于账户、设备和 API 当日是否提供数据。`garmin_get_daily` 默认返回较精简的字段：
 
 - 步数；
 - 静息心率（若该字段缺失，代码会回退到当日最低心率，因此结果也可能是最低心率）；
@@ -26,6 +26,7 @@ Garmin China Sync 是一个本地运行的 MCP 插件，将 Garmin 中国区（`
 #### 活动历史与本地文件导入
 
 - Garmin 活动按起止日期范围同步并保存在本地；活动工具返回活动标识、时间、类型、名称和原始活动响应。
+- 官方活动列表保留训练负荷、训练效果、距离、时长及心率。实测官方活动列表和详情未提供原有的 VO₂max 字段；同一活动此前已缓存的 VO₂max 会保留，并在 `_retained_field_sources` 标注旧来源。新活动缺失的 VO₂max 保持缺失，不从其他活动借用。
 - 首次初始化最多请求 365 天活动历史；常规同步默认刷新最近 7 天，以覆盖新活动和近期更新。
 - FIT / TCX 导入器扫描导入目录的**当前层级**（不递归子目录），读取 `.fit` 与 `.tcx` 文件。支持的摘要字段取决于文件内容，通常包括活动类型、开始时间、距离、时长和卡路里；FIT 还会提取平均/最高心率（若文件提供）。
 - 导入器不移动或删除源文件；导入的活动摘要会写入同一个 SQLite 活动缓存。修改同一文件内容会生成新的文件哈希活动 ID。
@@ -34,7 +35,7 @@ Garmin China Sync 是一个本地运行的 MCP 插件，将 Garmin 中国区（`
 
 `garmin_get_trends` 对最近 2–366 个日历日的**已有缓存数据**计算步数、静息心率、平均压力、睡眠时长、睡眠分数和前一晚平均 HRV 的均值，并提供返回记录序列前半段/后半段的均值及有效样本数。它是简单描述统计，不做插值、医学判断或训练计划建议。
 
-`garmin_status` 显示地区（`garmin.cn`）、是否已配置凭据、本地数据库路径、每日记录数、活动记录数、最近一次同步结果和导入目录。一次同步可为 `ok`、`partial` 或 `failed`；`partial` 表示部分接口失败，成功取得的数据仍会保存。
+`garmin_status` 显示地区（`garmin.cn`）、当前 `provider`（`personal-api` 或 `china-web`）、两种凭据各自是否已配置、本地数据库路径、记录数、最近同步结果和导入目录。同步日志也记录数据源。一次同步可为 `ok`、`partial` 或 `failed`；`partial` 表示部分接口失败或某日未返回记录，成功数据仍会保存。
 
 ### MCP 工具一览
 
@@ -71,11 +72,13 @@ codex plugin marketplace add williamslay/Garmin-China-Data-GPT-Sync --ref main -
 
 ```powershell
 pwsh -NoLogo -NoProfile -NonInteractive -File .\scripts\setup.ps1
-pwsh -NoLogo -NoProfile -File .\scripts\authenticate.ps1
+pwsh -NoLogo -NoProfile -File .\scripts\authenticate-personal.ps1
 pwsh -NoLogo -NoProfile -NonInteractive -File .\scripts\bootstrap.ps1
 ```
 
-`setup.ps1` 会创建 `.venv` 并安装插件及测试依赖。认证脚本在本机交互式提示 Garmin 邮箱、密码和需要时的 MFA 验证码。不要把密码、验证码、Cookie 或 token 发到聊天、Issue 或日志中。认证信息和刷新令牌经 `keyring` 写入 Windows Credential Manager，服务名为 `GarminCnSync`。
+`setup.ps1` 会创建 `.venv` 并安装依赖。先在[中国区 Personal API 页面](https://connect.garmin.cn/app/settings/personalApiToken)创建自己的 Key，再运行 `authenticate-personal.ps1`，在本机隐藏输入中录入。Key 存在 Windows Credential Manager 的 `GarminCnSync / personal-api-key-cn`；Bearer token 分块存在独立的 `GarminCnSync.PersonalApi.CN` 服务中，并在临近过期时重新交换。接口返回 401 时仅刷新重试一次，其他错误会报告。不会跨区发送密钥或在认证失败后自动改用网页登录。
+
+沿用网页通道时运行 `authenticate.ps1`，在本机输入邮箱、密码和必要的 MFA。已有网页凭据保留，可设置 `GARMIN_CN_SYNC_PROVIDER=web` 切回。不要把密钥、密码、验证码、Cookie 或 token 发到聊天、Issue 或日志中。配置与同步均针对自己的中国区账户；一个数据库只对应一个账户。
 
 `bootstrap.ps1` 首次回填最近最多 **30 天健康日数据** 和 **365 天活动历史**。之后只要 MCP 服务正在运行且本机凭据可用，调度器会在启动约 30 秒后开始按间隔同步最近 2 天健康数据和 7 天活动数据。默认间隔为 3600 秒（约 1 小时），最小为 900 秒（15 分钟）；服务停止期间不会执行定时同步。
 
@@ -92,12 +95,13 @@ pwsh -NoLogo -NoProfile -NonInteractive -File .\scripts\bootstrap.ps1
 | `GARMIN_CN_SYNC_DB` | SQLite 数据库完整路径。 |
 | `GARMIN_CN_SYNC_IMPORT_DIR` | FIT/TCX 导入目录。 |
 | `GARMIN_CN_SYNC_INTERVAL_SECONDS` | 定时同步间隔秒数，最小 900；非法值回退到 3600。 |
+| `GARMIN_CN_SYNC_PROVIDER` | `auto`（默认：有 Key 用官方）、`personal`（强制官方）或 `web`（原网页通道）。修改后重启 MCP 服务。 |
 
 MCP 服务器与缓存运行在本机；凭据不会放入聊天。用户请求的数据会由 MCP 工具返回给调用客户端，以完成该次查询或分析，因此也请检查客户端自身的数据处理设置。
 
 ### 限制与责任
 
-- 当前通过 `garminconnect` 的非官方 Garmin Connect Web 接口访问中国区账户。Garmin 可能更改、限制或停止这些接口，本项目不保证持续可用。
+- 官方通道固定连接 `personal.connectapi.garmin.cn`，原有 `garminconnect` 网页通道可选。历史缓存可能包含两种来源；本社区插件独立维护，接口能力与可用性由 Garmin 决定。
 - 仅用于你有权访问的账户，并由使用者自行确认 Garmin 适用条款和当地要求。
 - 插件只读取 Garmin，不会更改账户设置或运动数据；本地同步/导入会写入 SQLite 缓存。
 - 运动与健康数值仅供个人信息整理，不是医疗设备、诊断或治疗建议。
@@ -114,14 +118,16 @@ MCP 服务器与缓存运行在本机；凭据不会放入聊天。用户请求�
 
 ## English
 
-Garmin China Sync is a locally running MCP plugin that syncs Garmin China (`garmin.cn`) daily health data and activities to a local SQLite cache for on-demand queries from Codex or another compatible MCP client. The current release targets Windows 10/11 and is version `0.1.0`.
+Garmin China Sync is a locally running MCP plugin that syncs Garmin China (`garmin.cn`) daily health data and activities to a local SQLite cache for on-demand queries from Codex or another compatible MCP client. Version `0.2.0` targets Windows 10/11.
 
-**Important boundary:** the plugin only reads from the Garmin account and does not provide account-write operations; sync updates the local cache. It relies on an unofficial Garmin Connect web client, not an official Garmin integration, and the endpoints may change or be restricted.
+The plugin supports the official **Personal API** and the existing unofficial China web provider. It reads Garmin health and activity data and updates the local cache. In default `auto` mode, a saved Personal API key selects the official provider; otherwise the web provider is used. China-region authentication, sleep, HRV, Body Battery and activities were verified on 2026-10-26.
 
 ### Features
 
 - **Daily health, sleep, and recovery data:** Reads daily stats, sleep, HRV, and Body Battery responses. Compact daily results include steps, resting heart rate (falling back to minimum heart rate when that field is absent), average stress, sleep duration and score, last-night average HRV, Body Battery response, per-day errors, and sync time. Raw cached responses can be requested with `include_raw=true`.
+- **Official batch sync:** Uses four date-range requests for daily summaries, sleep summaries, HRV summaries and Body Battery. Official v2 daily fields are retained alongside compatibility aliases. Official cached sleep and HRV data are summaries; per-point curves are not additionally fetched.
 - **Activity history:** Syncs and queries activities by date range. Initial bootstrap requests up to 365 days; regular sync defaults to the latest 7 days. Full activity responses are cached locally.
+- **Metric coverage:** Official activity responses include training load/effect, distance, duration and heart rate. The activity list and detail endpoints did not return legacy VO2max in live verification. Previously cached VO2max for the same activity is retained with `_retained_field_sources`; a new activity's missing value is left missing.
 - **FIT / TCX imports:** Scans the top level of the configured local directory (not recursively) for `.fit` and `.tcx` files. Depending on file contents, it imports activity type, start time, distance, duration, and calories; FIT files may also provide average and maximum heart rate. Source files remain in place.
 - **Trend summaries:** Calculates means and valid sample counts for available steps, resting heart rate, average stress, sleep duration, sleep score, and last-night average HRV over 2–366 calendar days, with means for the first and second halves of the returned cached records. This is simple descriptive statistics—not interpolation, medical assessment, or training advice.
 - **Status and partial errors:** Shows region, whether credentials are configured, local database path and record counts, import directory, and latest sync result. A partial failure is reported while successfully retrieved data is retained.
@@ -162,11 +168,13 @@ Alternatively, clone the repository and install from its local marketplace. Afte
 
 ```powershell
 pwsh -NoLogo -NoProfile -NonInteractive -File .\scripts\setup.ps1
-pwsh -NoLogo -NoProfile -File .\scripts\authenticate.ps1
+pwsh -NoLogo -NoProfile -File .\scripts\authenticate-personal.ps1
 pwsh -NoLogo -NoProfile -NonInteractive -File .\scripts\bootstrap.ps1
 ```
 
-`setup.ps1` creates `.venv` and installs the plugin and test dependencies. The local interactive authentication script prompts for Garmin email, password, and an MFA code if required. Never put passwords, MFA codes, cookies, or tokens in chat, issues, or logs. Credentials and refresh tokens are stored through `keyring` in Windows Credential Manager under service name `GarminCnSync`.
+`setup.ps1` creates `.venv` and installs dependencies. Create your key on the [China Personal API page](https://connect.garmin.cn/app/settings/personalApiToken), then enter it at `authenticate-personal.ps1`'s local hidden prompt. The key is stored under `GarminCnSync / personal-api-key-cn` in Windows Credential Manager; chunked bearer tokens use the separate `GarminCnSync.PersonalApi.CN` service and are refreshed near expiry. A 401 triggers one refresh/retry; other errors are reported without automatically changing provider or region.
+
+For the legacy web provider, run `authenticate.ps1` and enter the email, password and MFA code locally. Existing web credentials are preserved; set `GARMIN_CN_SYNC_PROVIDER=web` to use them. Never place keys, passwords, MFA codes, cookies or tokens in chat, issues or logs. Use one database per China-region account.
 
 The initial bootstrap requests up to **30 days of daily health data** and **365 days of activity history**. While the MCP server is running with credentials configured, the scheduler begins about 30 seconds after launch and syncs the latest 2 health days and 7 activity days. The default interval is 3,600 seconds (about one hour), with a 900-second (15-minute) minimum. Scheduled sync does not run while the server is stopped.
 
@@ -183,12 +191,13 @@ Optional environment variables:
 | `GARMIN_CN_SYNC_DB` | Full path to the SQLite database. |
 | `GARMIN_CN_SYNC_IMPORT_DIR` | FIT/TCX import directory. |
 | `GARMIN_CN_SYNC_INTERVAL_SECONDS` | Scheduled sync interval in seconds; minimum 900, invalid values fall back to 3600. |
+| `GARMIN_CN_SYNC_PROVIDER` | `auto` (default: official when a key is saved), `personal` (force official), or `web` (legacy). Restart the MCP server after changing it. |
 
 The MCP server and cache run locally, and credentials are not placed in chat. Data requested through an MCP tool is returned to the calling client for that query or analysis; review that client's own data-handling settings as well.
 
 ### Limitations and responsibility
 
-- Access to Garmin China currently relies on the unofficial Garmin Connect web client. Garmin may change, restrict, or discontinue these endpoints; continued availability is not guaranteed.
+- The official provider uses `personal.connectapi.garmin.cn`; the existing `garminconnect` web provider remains selectable. Historical cache may contain both sources. This independently maintained community plugin depends on Garmin's API capabilities and availability.
 - Use only with an account you are authorized to access, and review applicable Garmin terms and local requirements.
 - The plugin reads from Garmin and does not change account settings or activity data; local sync/import writes to the SQLite cache.
 - Health and fitness information is for personal data organization only, not a medical device, diagnosis, or treatment advice.

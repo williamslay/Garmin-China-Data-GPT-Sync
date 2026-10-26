@@ -100,6 +100,16 @@ class Database:
         start_time = activity.get("startTimeLocal") or activity.get("startTimeGMT") or activity.get("start_time")
         name = activity.get("activityName") or activity.get("name")
         with self.connect() as con:
+            if source == "garmin-cn-personal-api" and activity.get("vO2MaxValue") is None:
+                previous = con.execute("SELECT source,raw_json FROM activities WHERE activity_id=?",
+                                       (activity_id,)).fetchone()
+                if previous:
+                    old = self._loads(previous["raw_json"])
+                    if old.get("vO2MaxValue") is not None:
+                        activity = dict(activity)
+                        activity["vO2MaxValue"] = old["vO2MaxValue"]
+                        activity["_retained_field_sources"] = {"vO2MaxValue":
+                            old.get("_retained_field_sources", {}).get("vO2MaxValue", previous["source"])}
             con.execute(
                 """
                 INSERT INTO activities(activity_id,start_time,activity_type,name,source,raw_json,synced_at)

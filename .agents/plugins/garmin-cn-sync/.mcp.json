@@ -8,7 +8,7 @@
       "default_tools_approval_mode": "prompt",
       "startup_timeout_sec": 30,
       "tool_timeout_sec": 300,
-      "env_vars": ["LOCALAPPDATA", "USERPROFILE", "PATH", "GARMIN_CN_SYNC_DB", "GARMIN_CN_SYNC_IMPORT_DIR", "GARMIN_CN_SYNC_INTERVAL_SECONDS"]
+      "env_vars": ["LOCALAPPDATA", "USERPROFILE", "PATH", "GARMIN_CN_SYNC_DB", "GARMIN_CN_SYNC_IMPORT_DIR", "GARMIN_CN_SYNC_INTERVAL_SECONDS", "GARMIN_CN_SYNC_PROVIDER"]
     }
   }
 }

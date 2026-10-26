@@ -4,15 +4,22 @@ from dataclasses import dataclass
 from typing import Callable
 
 from .secrets import SecretStore
+from .config import selected_provider
 
 
 @dataclass
 class GarminSession:
     api: object
     secrets: SecretStore
+    provider: str = "china-web"
 
     def persist_tokens(self) -> None:
-        self.secrets.save_tokens(self.api.client.dumps())
+        if self.provider == "china-web":
+            self.secrets.save_tokens(self.api.client.dumps())
+
+    def close(self) -> None:
+        if self.provider == "personal-api":
+            self.api.close()
 
 
 class GarminClientFactory:
@@ -20,6 +27,17 @@ class GarminClientFactory:
         self.secrets = secrets or SecretStore()
 
     def connect(self, prompt_mfa: Callable[[], str] | None = None) -> GarminSession:
+        if selected_provider(bool(self.secrets.load_personal_api_key())) == "personal-api":
+            from .personal_api import PersonalApiClient
+            if not self.secrets.load_personal_api_key():
+                raise RuntimeError("Personal API key missing. Run scripts/authenticate-personal.ps1.")
+            api = PersonalApiClient(self.secrets)
+            try:
+                api.authenticate()
+            except Exception:
+                api.close()
+                raise
+            return GarminSession(api=api, secrets=self.secrets, provider="personal-api")
         credentials = self.secrets.load_credentials()
         if credentials is None:
             raise RuntimeError("Garmin credentials missing. Run scripts/authenticate.ps1 first.")

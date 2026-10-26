@@ -1,6 +1,6 @@
 {
   "name": "garmin-cn-sync",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local-first, read-only Garmin China data sync for Codex and ChatGPT",
   "author": {"name": "Garmin China Sync contributors"},
   "license": "MIT",
