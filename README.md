@@ -60,4 +60,4 @@ Requirements: Node.js 24+, pnpm, a Cloudflare Workers/KV account, and a Garmin C
 4. Add a remote MCP server in Codex/ChatGPT, using the URL ending in `/mcp` and OAuth authentication.
 5. Enter the Personal API Key on Garmin's authorization page; never place it in chat or a config file.
 
-See [cloud/README.md](cloud/README.md), the [privacy notice](cloud/PRIVACY.md), and [terms](cloud/TERMS.md) for tool boundaries and data handling. This is independent community software, not an official Garmin product, and does not provide medical diagnoses.
+See [cloud/README.md](cloud/README.md), the [privacy notice](cloud/PRIVACY.md), and [terms](cloud/TERMS.md) for tool boundaries and data handling. This is independent community software, not an official Garmin product, and does not provide medical diagnoses.
