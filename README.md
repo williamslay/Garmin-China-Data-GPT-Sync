@@ -63,3 +63,7 @@ The button and deployment have no separate charge. Cloudflare Free currently inc
 Users without GitHub/GitLab can follow the [manual deployment guide](cloud/README.md#manual-deployment) using Node.js and pnpm.
 
 See [cloud/README.md](cloud/README.md), the [privacy notice](cloud/PRIVACY.md), and [terms](cloud/TERMS.md) for tool boundaries and data handling. This is independent community software, not an official Garmin product, and does not provide medical diagnoses.
+
+## 友链 / Links
+
+[Linux.do](https://linux.do/)
